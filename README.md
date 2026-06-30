@@ -83,6 +83,7 @@ If `mcp-locks` is not on the spawned process's PATH (common in sandboxed agent r
 | `release` | Release a claim; owner-checked unless `force: true` |
 | `reap` | Clean up expired claims, dead-PID claims, orphaned Chromium, stale SingletonLocks |
 | `doctor` | Health report; recommends reap when needed |
+| `kill` | Kill Playwright-MCP Chromium processes on demand (`mode: 'orphans' \| 'all' \| 'instance'`, plus `safety: 'idle-only' \| 'force'` for `all` mode). Per-instance kill is not implemented in v1. |
 
 Every tool returns the upstream `mcp-locks --json` envelope augmented with `exitCode` and (if present) `stderr`:
 
