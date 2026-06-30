@@ -299,6 +299,76 @@ mcp.tool(
   }
 );
 
+// --- Tool: kill -------------------------------------------------------------
+
+mcp.tool(
+  "kill",
+  "Kill Playwright-MCP Chromium processes on demand. Three modes: " +
+    "(1) mode='orphans' — kills only Chromiums whose parent process is gone (PPID=init/launchd). Subset of what reap does. " +
+    "(2) mode='all', safety='idle-only' — safe bulk cleanup. Refuses (ok:false, error='instances_claimed', exit 2) if any instance is currently claimed in mcp-locks state; otherwise kills every matching Chromium. Use end-of-day or after a known-clean checkpoint. " +
+    "(3) mode='all', safety='force' — nuclear. Kills every matching Chromium regardless of claim state. Use only when you're certain nothing is in flight, or to recover from a stuck claim. " +
+    "After a kill, the next *_browser_* MCP tool call against an affected slot fails once with 'Target page has been closed', then succeeds as the MCP server lazily respawns Chromium. " +
+    "Per-instance kill (mode='instance') is NOT implemented in v1 — returns a clear error.",
+  {
+    mode: z
+      .enum(["orphans", "all", "instance"])
+      .describe(
+        "Which kill mode. 'orphans' kills only orphaned Chromiums. 'all' kills every matching Chromium (requires safety flag). 'instance' is not implemented in v1."
+      ),
+    safety: z
+      .enum(["idle-only", "force"])
+      .optional()
+      .describe(
+        "Required when mode='all'. 'idle-only' refuses to kill if any instance is claimed (safe default). 'force' kills regardless of claim state (nuclear). Ignored for mode='orphans'."
+      ),
+    instance: z
+      .string()
+      .optional()
+      .describe(
+        "Required when mode='instance'. Currently returns a not-implemented error in v1."
+      ),
+  },
+  async ({ mode, safety, instance }) => {
+    const args = ["kill"];
+    if (mode === "orphans") {
+      args.push("--orphans");
+    } else if (mode === "all") {
+      args.push("--all");
+      if (safety === "idle-only") {
+        args.push("--idle-only");
+      } else if (safety === "force") {
+        args.push("--force");
+      } else {
+        // Surface the upstream's own error message rather than fabricating one
+        // here — keeps the contract single-sourced in mcp-locks.
+      }
+    } else if (mode === "instance") {
+      if (!instance) {
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: JSON.stringify(
+                {
+                  ok: false,
+                  error:
+                    "mode='instance' requires the 'instance' arg, but it's also not implemented in v1 — upstream will return a not-implemented error.",
+                  exitCode: 1,
+                },
+                null,
+                2
+              ),
+            },
+          ],
+        };
+      }
+      args.push(instance);
+    }
+    const result = await runMcpLocks(args);
+    return toolResponse(result);
+  }
+);
+
 // ---------------------------------------------------------------------------
 // Start
 // ---------------------------------------------------------------------------
