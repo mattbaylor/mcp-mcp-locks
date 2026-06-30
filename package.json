@@ -1,0 +1,36 @@
+{
+  "name": "mcp-mcp-locks",
+  "version": "0.1.0",
+  "description": "MCP server wrapping the mcp-locks CLI — exposes claim/release/list/who/reap/doctor as native MCP tools for AI agents",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "mcp-mcp-locks": "dist/index.js"
+  },
+  "scripts": {
+    "build": "./node_modules/.bin/tsc",
+    "watch": "./node_modules/.bin/tsc --watch",
+    "start": "node dist/index.js"
+  },
+  "keywords": [
+    "mcp",
+    "mcp-locks",
+    "coordination",
+    "playwright",
+    "ai",
+    "dev-tools"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mattbaylor/mcp-mcp-locks.git"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.13.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.0",
+    "typescript": "^5.9.3"
+  }
+}
